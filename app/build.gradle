@@ -32,7 +32,7 @@ dependencies {
 
     implementation 'com.github.raynor73:Commons:0.1'
     implementation 'com.github.raynor73:Engine3DJvm:0.1'
-    implementation 'com.github.raynor73:RenderingEngineAndroid:0.1.1'
+    implementation 'com.github.raynor73:RenderingEngineAndroid:0.1.2'
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
