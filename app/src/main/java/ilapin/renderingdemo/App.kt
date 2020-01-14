@@ -1,7 +1,7 @@
 package ilapin.renderingdemo
 
-import android.app.Application
 import android.os.StrictMode
+import androidx.multidex.MultiDexApplication
 import ilapin.common.android.log.L
 import io.reactivex.plugins.RxJavaPlugins
 import timber.log.Timber
@@ -9,7 +9,7 @@ import timber.log.Timber
 /**
  * @author Игорь on 15.01.2020.
  */
-class App : Application() {
+class App : MultiDexApplication() {
 
     override fun onCreate() {
         super.onCreate()

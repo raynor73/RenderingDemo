@@ -1,5 +1,6 @@
 package ilapin.renderingdemo.ui
 
+import android.annotation.SuppressLint
 import android.content.res.Configuration
 import android.opengl.GLSurfaceView
 import android.os.Bundle
@@ -17,6 +18,7 @@ class MainActivity : AppCompatActivity() {
 
     private val permanentSubscriptions = CompositeDisposable()
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
