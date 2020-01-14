@@ -12,6 +12,6 @@ import ilapin.renderingengine.android.BaseGLSurfaceRenderer
 class GLSurfaceViewRenderer(context: Context) : BaseGLSurfaceRenderer(context) {
 
     override fun createScene(messageQueue: MessageQueue): Scene {
-        return DemoScene()
+        return DemoScene(renderingEngine, renderingEngine, renderingEngine)
     }
 }
