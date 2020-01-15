@@ -14,6 +14,9 @@
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
 
+        <item name="android:statusBarColor">@color/translucent</item>
+        <item name="android:navigationBarColor">@color/translucent</item>
+
     </style>
 
 </resources>
