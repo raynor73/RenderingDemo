@@ -1,8 +1,10 @@
 package ilapin.renderingdemo.domain
 
+import ilapin.common.kotlin.plusAssign
 import ilapin.engine3d.*
 import ilapin.meshloader.MeshLoadingRepository
 import ilapin.renderingengine.*
+import io.reactivex.disposables.CompositeDisposable
 import org.joml.Quaternionf
 import org.joml.Vector3f
 
@@ -15,14 +17,31 @@ class DemoScene(
     private val textureRepository: TextureRepository,
     private val textureLoadingRepository: TextureLoadingRepository,
     private val meshRenderingRepository: MeshRenderingRepository,
-    private val meshLoadingRepository: MeshLoadingRepository
+    private val meshLoadingRepository: MeshLoadingRepository,
+    displayMetricsRepository: DisplayMetricsRepository,
+    scrollController: ScrollController
 ) : Scene {
+
+    private val subscriptions = CompositeDisposable()
+
+    private val tmpQuaternion = Quaternionf()
+
+    private val pixelDensityFactor = displayMetricsRepository.getPixelDensityFactor()
 
     private val perspectiveCamera = PerspectiveCameraComponent()
 
     private val rootGameObject = GameObject().apply {
         addComponent(TransformationComponent(Vector3f(), Quaternionf().identity(), Vector3f(1f, 1f, 1f)))
     }
+
+    private val lightTransform = TransformationComponent(
+        Vector3f(),
+        Quaternionf()
+            .identity()
+            .rotateX((Math.PI / 4).toFloat())
+            .rotateY((Math.PI / 8).toFloat()),
+        Vector3f(1f, 1f, 1f)
+    )
 
     override val cameras = listOf(perspectiveCamera)
 
@@ -35,10 +54,19 @@ class DemoScene(
         initLights()
         initEarthGlobe()
         //initTriangle()
+
+        subscriptions += scrollController.scrollEvent.subscribe { scrollEvent ->
+            val yAngle = Math.toRadians((scrollEvent.dx / pixelDensityFactor).toDouble())
+            val xAngle = Math.toRadians((scrollEvent.dy / pixelDensityFactor).toDouble())
+            tmpQuaternion.set(lightTransform.rotation)
+            tmpQuaternion.rotateLocalY(yAngle.toFloat())
+            tmpQuaternion.rotateLocalX(xAngle.toFloat())
+            lightTransform.rotation = tmpQuaternion
+        }
     }
 
     override fun onCleared() {
-        // do nothing
+        subscriptions.clear()
     }
 
     override fun onScreenConfigUpdate(width: Int, height: Int) {
@@ -70,14 +98,7 @@ class DemoScene(
 
     private fun initLights() {
         val light1GameObject = GameObject()
-        light1GameObject.addComponent(TransformationComponent(
-            Vector3f(),
-            Quaternionf()
-                .identity()
-                .rotateX((Math.PI / 4).toFloat())
-                .rotateY((Math.PI / 8).toFloat()),
-            Vector3f(1f, 1f, 1f)
-        ))
+        light1GameObject.addComponent(lightTransform)
         val light1Component = DirectionalLightComponent(Vector3f(1f, 1f, 1f))
         light1GameObject.addComponent(light1Component)
         rootGameObject.addChild(light1GameObject)
