@@ -19,16 +19,21 @@ class DemoScene(
     private val meshRenderingRepository: MeshRenderingRepository,
     private val meshLoadingRepository: MeshLoadingRepository,
     displayMetricsRepository: DisplayMetricsRepository,
-    scrollController: ScrollController
+    scrollController: ScrollController,
+    private val movementController: MovementController
 ) : Scene {
 
     private val subscriptions = CompositeDisposable()
 
+    private val tmpVector3 = Vector3f()
     private val tmpQuaternion = Quaternionf()
 
     private val pixelDensityFactor = displayMetricsRepository.getPixelDensityFactor()
 
     private val perspectiveCamera = PerspectiveCameraComponent()
+    private val perspectiveCameraTransform = TransformationComponent(
+        Vector3f(0f, 0f, 2.8f), Quaternionf().identity(), Vector3f(1f, 1f, 1f)
+    )
 
     private val rootGameObject = GameObject().apply {
         addComponent(TransformationComponent(Vector3f(), Quaternionf().identity(), Vector3f(1f, 1f, 1f)))
@@ -79,14 +84,13 @@ class DemoScene(
     }
 
     override fun update() {
-        // do nothing
+        tmpVector3.set(perspectiveCameraTransform.position)
+        //tmpVector3.
     }
 
     private fun initPerspectiveCamera() {
         val cameraGameObject = GameObject()
-        cameraGameObject.addComponent(
-            TransformationComponent(Vector3f(0f, 0f, 2.8f), Quaternionf().identity(), Vector3f(1f, 1f, 1f))
-        )
+        cameraGameObject.addComponent(perspectiveCameraTransform)
         cameraGameObject.addComponent(perspectiveCamera)
         rootGameObject.addChild(cameraGameObject)
     }
@@ -128,4 +132,9 @@ class DemoScene(
         meshRenderingRepository.addMeshToRenderList(perspectiveCamera, mesh)
         rootGameObject.addChild(gameObject)
     }*/
+
+    companion object {
+
+        private const val CAMERA_MOVEMENT_SPEED = 1f
+    }
 }
