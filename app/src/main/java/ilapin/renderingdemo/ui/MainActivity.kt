@@ -23,7 +23,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
+        if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             renderer = GLSurfaceViewRenderer(this)
             val glView = GLSurfaceView(this)
             glView.setOnTouchListener { _, event ->
