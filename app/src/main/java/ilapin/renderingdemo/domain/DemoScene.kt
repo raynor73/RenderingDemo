@@ -85,7 +85,7 @@ class DemoScene(
     private fun initPerspectiveCamera() {
         val cameraGameObject = GameObject()
         cameraGameObject.addComponent(
-            TransformationComponent(Vector3f(0f, 0f, 5f), Quaternionf().identity(), Vector3f(1f, 1f, 1f))
+            TransformationComponent(Vector3f(0f, 0f, 2.8f), Quaternionf().identity(), Vector3f(1f, 1f, 1f))
         )
         cameraGameObject.addComponent(perspectiveCamera)
         rootGameObject.addChild(cameraGameObject)
