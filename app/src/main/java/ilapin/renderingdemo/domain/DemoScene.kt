@@ -1,12 +1,14 @@
 package ilapin.renderingdemo.domain
 
 import ilapin.common.kotlin.plusAssign
+import ilapin.common.time.TimeRepository
 import ilapin.engine3d.*
 import ilapin.meshloader.MeshLoadingRepository
 import ilapin.renderingengine.*
 import io.reactivex.disposables.CompositeDisposable
 import org.joml.Quaternionf
 import org.joml.Vector3f
+import org.joml.Vector3fc
 
 /**
  * @author Игорь on 14.01.2020.
@@ -20,12 +22,14 @@ class DemoScene(
     private val meshLoadingRepository: MeshLoadingRepository,
     displayMetricsRepository: DisplayMetricsRepository,
     scrollController: ScrollController,
-    private val movementController: MovementController
+    private val movementController: MovementController,
+    private val timeRepository: TimeRepository
 ) : Scene {
 
     private val subscriptions = CompositeDisposable()
 
-    private val tmpVector3 = Vector3f()
+    private val tmpVector = Vector3f()
+    private val tmpVector1 = Vector3f()
     private val tmpQuaternion = Quaternionf()
 
     private val pixelDensityFactor = displayMetricsRepository.getPixelDensityFactor()
@@ -47,6 +51,11 @@ class DemoScene(
             .rotateY((Math.PI / 8).toFloat()),
         Vector3f(1f, 1f, 1f)
     )
+
+    private val initialForwardVector: Vector3fc = Vector3f(0f, 0f, -1f)
+    private val initialRightVector: Vector3fc = Vector3f(1f, 0f, 0f)
+
+    private var prevTimestamp: Long? = null
 
     override val cameras = listOf(perspectiveCamera)
 
@@ -84,8 +93,27 @@ class DemoScene(
     }
 
     override fun update() {
-        tmpVector3.set(perspectiveCameraTransform.position)
-        //tmpVector3.
+        val currentTimestamp = timeRepository.getTimestamp()
+        prevTimestamp?.let {
+            val dt = (currentTimestamp - it) / NANOS_IN_SECOND
+            tmpVector.set(initialForwardVector)
+            tmpVector.mul(movementController.movingFraction * CAMERA_MOVEMENT_SPEED * dt)
+            tmpVector1.set(initialRightVector)
+            tmpVector1.mul(movementController.strafingFraction* CAMERA_MOVEMENT_SPEED * dt)
+
+            tmpQuaternion.set(perspectiveCameraTransform.rotation)
+            tmpQuaternion.rotateLocalY(movementController.horizontalSteeringFraction * CAMERA_STEERING_SPEED * dt)
+            tmpQuaternion.rotateLocalX(movementController.verticalSteeringFraction * CAMERA_STEERING_SPEED * dt)
+            perspectiveCameraTransform.rotation = tmpQuaternion
+
+            tmpVector.rotate(perspectiveCameraTransform.rotation)
+            tmpVector1.rotate(perspectiveCameraTransform.rotation)
+
+            tmpVector.add(perspectiveCameraTransform.position)
+            tmpVector.add(tmpVector1)
+            perspectiveCameraTransform.position = tmpVector
+        }
+        prevTimestamp = currentTimestamp
     }
 
     private fun initPerspectiveCamera() {
@@ -136,5 +164,7 @@ class DemoScene(
     companion object {
 
         private const val CAMERA_MOVEMENT_SPEED = 1f
+        private const val CAMERA_STEERING_SPEED = 1f
+        private const val NANOS_IN_SECOND = 1e9f
     }
 }

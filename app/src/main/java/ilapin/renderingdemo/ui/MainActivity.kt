@@ -30,7 +30,7 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 
         if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            renderer = GLSurfaceViewRenderer(this)
+            renderer = GLSurfaceViewRenderer(this, leftJoystickView, rightJoystickView)
             val gestureDetector = GestureDetectorCompat(this, object : GestureDetector.SimpleOnGestureListener() {
 
                 override fun onSingleTapUp(e: MotionEvent?): Boolean {
