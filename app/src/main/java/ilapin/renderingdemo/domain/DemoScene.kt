@@ -31,6 +31,7 @@ class DemoScene(
     private val tmpVector = Vector3f()
     private val tmpVector1 = Vector3f()
     private val tmpQuaternion = Quaternionf()
+    private val tmpQuaternion1 = Quaternionf()
 
     private val pixelDensityFactor = displayMetricsRepository.getPixelDensityFactor()
 
@@ -101,10 +102,11 @@ class DemoScene(
             tmpVector1.set(initialRightVector)
             tmpVector1.mul(movementController.strafingFraction* CAMERA_MOVEMENT_SPEED * dt)
 
-            tmpQuaternion.set(perspectiveCameraTransform.rotation)
-            tmpQuaternion.rotateLocalY(movementController.horizontalSteeringFraction * CAMERA_STEERING_SPEED * dt)
+            tmpQuaternion.identity()
+            tmpQuaternion.rotateY(movementController.horizontalSteeringFraction * CAMERA_STEERING_SPEED * dt)
             tmpQuaternion.rotateLocalX(movementController.verticalSteeringFraction * CAMERA_STEERING_SPEED * dt)
-            perspectiveCameraTransform.rotation = tmpQuaternion
+            perspectiveCameraTransform.rotation.mul(tmpQuaternion, tmpQuaternion1)
+            perspectiveCameraTransform.rotation = tmpQuaternion1
 
             tmpVector.rotate(perspectiveCameraTransform.rotation)
             tmpVector1.rotate(perspectiveCameraTransform.rotation)
