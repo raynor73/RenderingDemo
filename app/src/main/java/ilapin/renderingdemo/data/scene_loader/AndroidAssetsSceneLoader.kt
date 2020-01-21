@@ -9,10 +9,7 @@ import ilapin.renderingdemo.domain.scene_loader.PerspectiveCameraPartialConfig
 import ilapin.renderingdemo.domain.scene_loader.SceneData
 import ilapin.renderingdemo.domain.scene_loader.SceneLoader
 import ilapin.renderingdemo.getCameraComponent
-import ilapin.renderingengine.LightsRenderingRepository
-import ilapin.renderingengine.MeshRenderingRepository
-import ilapin.renderingengine.RenderingSettingsRepository
-import ilapin.renderingengine.TextureLoadingRepository
+import ilapin.renderingengine.*
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import java.io.BufferedReader
@@ -27,6 +24,7 @@ class AndroidAssetsSceneLoader(
     private val meshRenderingRepository: MeshRenderingRepository,
     private val lightsRenderingRepository: LightsRenderingRepository,
     private val textureLoadingRepository: TextureLoadingRepository,
+    private val textureRepository: TextureRepository,
     private val renderingSettingsRepository: RenderingSettingsRepository
 ) : SceneLoader {
 
@@ -45,6 +43,14 @@ class AndroidAssetsSceneLoader(
 
         sceneDto.textures?.forEach {
             safeLet(it.id, it.path) { id, path -> textureLoadingRepository.loadTexture(id, path) }
+            safeLet(it.id, it.color) { id, colorRGBA ->
+                val colorARGB = IntArray(1)
+                colorARGB[0] = ((colorRGBA[3] * 255).toInt() shl 24) or
+                        ((colorRGBA[0] * 255).toInt() shl 16) or
+                        ((colorRGBA[1] * 255).toInt() shl 8) or
+                        (colorRGBA[2] * 255).toInt()
+                textureRepository.createTexture(id, 1, 1, colorARGB)
+            }
         }
 
         sceneDto.materials?.forEach { materialDto ->

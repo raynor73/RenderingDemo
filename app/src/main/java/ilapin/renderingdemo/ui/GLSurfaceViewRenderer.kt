@@ -43,6 +43,7 @@ class GLSurfaceViewRenderer(
                 meshRenderingRepository = renderingEngine,
                 lightsRenderingRepository = renderingEngine,
                 textureLoadingRepository = renderingEngine,
+                textureRepository = renderingEngine,
                 renderingSettingsRepository = renderingEngine
             ),
             displayMetricsRepository = AndroidDisplayMetricsRepository(context),
