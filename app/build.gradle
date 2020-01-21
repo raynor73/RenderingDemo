@@ -44,9 +44,9 @@ dependencies {
 
     implementation 'com.github.raynor73:Commons:0.2'
     implementation 'com.github.raynor73:AndroidCommons:0.3'
-    implementation 'com.github.raynor73:Engine3DJvm:0.1'
-    implementation 'com.github.raynor73:RenderingEngine:0.1'
-    implementation 'com.github.raynor73:RenderingEngineAndroid:0.1.2'
+    implementation 'com.github.raynor73:Engine3DJvm:0.2'
+    implementation 'com.github.raynor73:RenderingEngine:0.3'
+    implementation 'com.github.raynor73:RenderingEngineAndroid:0.2'
     implementation 'com.github.raynor73:MeshLoader:0.1'
     implementation 'com.github.raynor73:MeshLoaderAndroid:0.1'
 
@@ -54,6 +54,7 @@ dependencies {
     implementation 'io.reactivex.rxjava2:rxjava:2.2.13'
     implementation 'com.jakewharton.timber:timber:4.7.1'
     implementation 'org.joml:joml:1.9.19'
+    implementation 'com.google.code.gson:gson:2.8.6'
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'

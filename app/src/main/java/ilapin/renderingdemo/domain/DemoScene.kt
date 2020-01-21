@@ -40,7 +40,7 @@ class DemoScene(
         Vector3f(0f, 0f, 2.8f), Quaternionf().identity(), Vector3f(1f, 1f, 1f)
     )
 
-    private val rootGameObject = GameObject().apply {
+    private val rootGameObject = GameObject("root").apply {
         addComponent(TransformationComponent(Vector3f(), Quaternionf().identity(), Vector3f(1f, 1f, 1f)))
     }
 
@@ -119,7 +119,7 @@ class DemoScene(
     }
 
     private fun initPerspectiveCamera() {
-        val cameraGameObject = GameObject()
+        val cameraGameObject = GameObject("camera0")
         cameraGameObject.addComponent(perspectiveCameraTransform)
         cameraGameObject.addComponent(perspectiveCamera)
         rootGameObject.addChild(cameraGameObject)
@@ -127,11 +127,11 @@ class DemoScene(
 
     private fun initTextures() {
         textureRepository.createTexture("colorGreen", 1, 1, intArrayOf(0xff00ff00.toInt()))
-        textureLoadingRepository.loadTexture("2k_earth_daymap.jpg")
+        textureLoadingRepository.loadTexture("earth_texture", "2k_earth_daymap.jpg")
     }
 
     private fun initLights() {
-        val light1GameObject = GameObject()
+        val light1GameObject = GameObject("light0")
         light1GameObject.addComponent(lightTransform)
         val light1Component = DirectionalLightComponent(Vector3f(1f, 1f, 1f))
         light1GameObject.addComponent(light1Component)
@@ -140,13 +140,13 @@ class DemoScene(
     }
 
     private fun initEarthGlobe() {
-        val gameObject = GameObject()
+        val gameObject = GameObject("earth")
         gameObject.addComponent(
             TransformationComponent(Vector3f(), Quaternionf().identity(), Vector3f(1f, 1f, 1f))
         )
         val mesh = meshLoadingRepository.loadMesh("earth.obj")
         gameObject.addComponent(mesh)
-        gameObject.addComponent(MaterialComponent("2k_earth_daymap.jpg"))
+        gameObject.addComponent(MaterialComponent("earth_texture"))
         meshRenderingRepository.addMeshToRenderList(perspectiveCamera, mesh)
         rootGameObject.addChild(gameObject)
     }
