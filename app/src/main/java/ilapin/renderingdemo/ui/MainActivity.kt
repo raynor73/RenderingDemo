@@ -9,8 +9,11 @@ import android.view.MotionEvent
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GestureDetectorCompat
+import com.google.gson.GsonBuilder
 import ilapin.common.input.TouchEvent
 import ilapin.renderingdemo.R
+import ilapin.renderingdemo.data.scene_loader.ComponentDeserializer
+import ilapin.renderingdemo.data.scene_loader.ComponentDto
 import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -30,7 +33,12 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 
         if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            renderer = GLSurfaceViewRenderer(this, leftJoystickView, rightJoystickView)
+            val gson = GsonBuilder()
+                .registerTypeAdapter(ComponentDto::class.java, ComponentDeserializer())
+                .setLenient()
+                .create()
+
+            renderer = GLSurfaceViewRenderer(this, gson, leftJoystickView, rightJoystickView)
             val gestureDetector = GestureDetectorCompat(this, object : GestureDetector.SimpleOnGestureListener() {
 
                 override fun onSingleTapUp(e: MotionEvent?): Boolean {

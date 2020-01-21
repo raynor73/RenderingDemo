@@ -1,6 +1,7 @@
 package ilapin.renderingdemo.ui
 
 import android.content.Context
+import com.google.gson.Gson
 import ilapin.common.android.input.TouchEventFromMessageQueueRepository
 import ilapin.common.android.time.LocalTimeRepository
 import ilapin.common.android.ui.widgets.joystick_view.JoystickView
@@ -8,6 +9,7 @@ import ilapin.common.messagequeue.MessageQueue
 import ilapin.engine3d.Scene
 import ilapin.meshloader.android.ObjMeshLoadingRepository
 import ilapin.renderingdemo.data.JoystickViewJoystick
+import ilapin.renderingdemo.data.scene_loader.AndroidAssetsSceneLoader
 import ilapin.renderingdemo.domain.DemoScene
 import ilapin.renderingdemo.domain.MovementController
 import ilapin.renderingdemo.domain.ScrollController
@@ -19,6 +21,7 @@ import ilapin.renderingengine.android.BaseGLSurfaceRenderer
  */
 class GLSurfaceViewRenderer(
     private val context: Context,
+    private val gson: Gson,
     private val leftJoystickView: JoystickView,
     private val rightJoystickView: JoystickView
 ) : BaseGLSurfaceRenderer(context) {
@@ -31,12 +34,15 @@ class GLSurfaceViewRenderer(
             .subscribe(scrollController.touchEventsObserver)
 
         return DemoScene(
-            renderingSettingsRepository = renderingEngine,
-            lightsRenderingRepository = renderingEngine,
-            textureRepository = renderingEngine,
-            textureLoadingRepository = renderingEngine,
-            meshRenderingRepository = renderingEngine,
-            meshLoadingRepository = ObjMeshLoadingRepository(context),
+            sceneLoader = AndroidAssetsSceneLoader(
+                context = context,
+                gson = gson,
+                meshLoadingRepository = ObjMeshLoadingRepository(context),
+                meshRenderingRepository = renderingEngine,
+                lightsRenderingRepository = renderingEngine,
+                textureLoadingRepository = renderingEngine,
+                renderingSettingsRepository = renderingEngine
+            ),
             displayMetricsRepository = AndroidDisplayMetricsRepository(context),
             scrollController = scrollController,
             movementController = MovementController(

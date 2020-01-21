@@ -15,8 +15,8 @@ class ComponentDeserializer : JsonDeserializer<ComponentDto> {
         return jsonObject["type"]?.let {
             when (it.asString) {
                 "DirectionalLight" -> context.deserialize(jsonObject, ComponentDto.DirectionalLightDto::class.java)
-                "MeshRenderer" -> context.deserialize(jsonObject, ComponentDto.MeshRendererDto::class.java)
-                "Camera" -> context.deserialize(jsonObject, ComponentDto.CameraDto::class.java)
+                "Mesh" -> context.deserialize(jsonObject, ComponentDto.MeshDto::class.java)
+                "PerspectiveCamera" -> context.deserialize(jsonObject, ComponentDto.PerspectiveCameraDto::class.java)
                 else -> null
             }
         }

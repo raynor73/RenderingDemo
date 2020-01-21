@@ -3,8 +3,8 @@ package ilapin.renderingdemo.domain
 import ilapin.common.kotlin.plusAssign
 import ilapin.common.time.TimeRepository
 import ilapin.engine3d.*
-import ilapin.meshloader.MeshLoadingRepository
-import ilapin.renderingengine.*
+import ilapin.renderingdemo.domain.scene_loader.SceneLoader
+import ilapin.renderingengine.DisplayMetricsRepository
 import io.reactivex.disposables.CompositeDisposable
 import org.joml.Quaternionf
 import org.joml.Vector3f
@@ -14,12 +14,7 @@ import org.joml.Vector3fc
  * @author Игорь on 14.01.2020.
  */
 class DemoScene(
-    renderingSettingsRepository: RenderingSettingsRepository,
-    private val lightsRenderingRepository: LightsRenderingRepository,
-    private val textureRepository: TextureRepository,
-    private val textureLoadingRepository: TextureLoadingRepository,
-    private val meshRenderingRepository: MeshRenderingRepository,
-    private val meshLoadingRepository: MeshLoadingRepository,
+    sceneLoader: SceneLoader,
     displayMetricsRepository: DisplayMetricsRepository,
     scrollController: ScrollController,
     private val movementController: MovementController,
@@ -35,40 +30,31 @@ class DemoScene(
 
     private val pixelDensityFactor = displayMetricsRepository.getPixelDensityFactor()
 
-    private val perspectiveCamera = PerspectiveCameraComponent()
-    private val perspectiveCameraTransform = TransformationComponent(
-        Vector3f(0f, 0f, 2.8f), Quaternionf().identity(), Vector3f(1f, 1f, 1f)
-    )
+    private val sceneData = sceneLoader.loadScene("shaders_scene.json")
 
-    private val rootGameObject = GameObject("root").apply {
-        addComponent(TransformationComponent(Vector3f(), Quaternionf().identity(), Vector3f(1f, 1f, 1f)))
-    }
+    private val perspectiveCamera: PerspectiveCameraComponent
+    private val perspectiveCameraTransform: TransformationComponent
 
-    private val lightTransform = TransformationComponent(
-        Vector3f(),
-        Quaternionf()
-            .identity()
-            .rotateX((Math.PI / 4).toFloat())
-            .rotateY((Math.PI / 8).toFloat()),
-        Vector3f(1f, 1f, 1f)
-    )
+    private val rootGameObject: GameObject
+
+    private val lightTransform: TransformationComponent
 
     private val initialForwardVector: Vector3fc = Vector3f(0f, 0f, -1f)
     private val initialRightVector: Vector3fc = Vector3f(1f, 0f, 0f)
 
     private var prevTimestamp: Long? = null
 
-    override val cameras = listOf(perspectiveCamera)
+    override val cameras: List<CameraComponent>
 
     init {
-        renderingSettingsRepository.setClearColor(0f, 0f, 0f, 1f)
-        renderingSettingsRepository.setAmbientColor(0.1f, 0.1f, 0.1f)
+        val perspectiveCameraGameObject = sceneData.gameObjectsMap["camera0"] ?: throw IllegalArgumentException("Camera game object not found")
+        perspectiveCamera = perspectiveCameraGameObject.getComponent(PerspectiveCameraComponent::class.java) ?: throw IllegalArgumentException("Camera component not found")
+        perspectiveCameraTransform = perspectiveCameraGameObject.getComponent(TransformationComponent::class.java) ?: throw IllegalArgumentException("Camera transformation component not found")
+        cameras = listOf(perspectiveCamera)
 
-        initPerspectiveCamera()
-        initTextures()
-        initLights()
-        initEarthGlobe()
-        //initTriangle()
+        rootGameObject = sceneData.rootGameObject
+
+        lightTransform = sceneData.gameObjectsMap["light0"]?.getComponent(TransformationComponent::class.java) ?: throw IllegalArgumentException("Light not found")
 
         subscriptions += scrollController.scrollEvent.subscribe { scrollEvent ->
             val yAngle = Math.toRadians((scrollEvent.dx / pixelDensityFactor).toDouble())
@@ -85,11 +71,12 @@ class DemoScene(
     }
 
     override fun onScreenConfigUpdate(width: Int, height: Int) {
+        val partialConfig = sceneData.perspectiveCamerasConfigs["camera0"] ?: throw IllegalArgumentException("Camera's partial config not found")
         perspectiveCamera.config = PerspectiveCameraComponent.Config(
-            45f,
+            partialConfig.fieldOfView,
             width.toFloat() / height.toFloat(),
-            0.1f,
-            1000f
+            partialConfig.zNear,
+            partialConfig.zFar
         )
     }
 
@@ -117,51 +104,6 @@ class DemoScene(
         }
         prevTimestamp = currentTimestamp
     }
-
-    private fun initPerspectiveCamera() {
-        val cameraGameObject = GameObject("camera0")
-        cameraGameObject.addComponent(perspectiveCameraTransform)
-        cameraGameObject.addComponent(perspectiveCamera)
-        rootGameObject.addChild(cameraGameObject)
-    }
-
-    private fun initTextures() {
-        textureRepository.createTexture("colorGreen", 1, 1, intArrayOf(0xff00ff00.toInt()))
-        textureLoadingRepository.loadTexture("earth_texture", "2k_earth_daymap.jpg")
-    }
-
-    private fun initLights() {
-        val light1GameObject = GameObject("light0")
-        light1GameObject.addComponent(lightTransform)
-        val light1Component = DirectionalLightComponent(Vector3f(1f, 1f, 1f))
-        light1GameObject.addComponent(light1Component)
-        rootGameObject.addChild(light1GameObject)
-        lightsRenderingRepository.addDirectionalLight(perspectiveCamera, light1Component)
-    }
-
-    private fun initEarthGlobe() {
-        val gameObject = GameObject("earth")
-        gameObject.addComponent(
-            TransformationComponent(Vector3f(), Quaternionf().identity(), Vector3f(1f, 1f, 1f))
-        )
-        val mesh = meshLoadingRepository.loadMesh("earth.obj")
-        gameObject.addComponent(mesh)
-        gameObject.addComponent(MaterialComponent("earth_texture"))
-        meshRenderingRepository.addMeshToRenderList(perspectiveCamera, mesh)
-        rootGameObject.addChild(gameObject)
-    }
-
-    /*private fun initTriangle() {
-        val gameObject = GameObject()
-        gameObject.addComponent(
-            TransformationComponent(Vector3f(), Quaternionf().identity(), Vector3f(1f, 1f, 1f))
-        )
-        val mesh = MeshFactory.createVerticalQuad()
-        gameObject.addComponent(mesh)
-        gameObject.addComponent(MaterialComponent("colorGreen"))
-        meshRenderingRepository.addMeshToRenderList(perspectiveCamera, mesh)
-        rootGameObject.addChild(gameObject)
-    }*/
 
     companion object {
 
