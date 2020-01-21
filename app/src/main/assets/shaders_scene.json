@@ -1,15 +1,18 @@
 {
   "textures": [
     { "id": "earth", "path": "2k_earth_daymap.jpg" },
-    { "id": "green", "color": [0, 1, 0, 1] }
+    { "id": "green", "color": [0, 1, 0, 1] },
+    { "id": "blue", "color": [0, 0, 0.5, 1] }
   ],
   "materials": [
     { "id": "earth", "textureName": "earth" },
-    { "id": "camera", "textureName": "green", "isDoubleSided": true, "isWireframe": true, "isUnlit": true }
+    { "id": "camera", "textureName": "green", "isDoubleSided": true, "isWireframe": true, "isUnlit": true },
+    { "id": "ground", "textureName": "blue" }
   ],
   "meshes": [
     { "id": "earth", "path": "earth.obj" },
-    { "id": "camera", "path": "camera.obj" }
+    { "id": "camera", "path": "camera.obj" },
+    { "id": "plane", "path": "planeUV.obj" }
   ],
   "initialCameras": ["camera0"],
   "renderingSettings": {
@@ -54,6 +57,16 @@
           "scale": [1.0, 1.0, 1.0],
           "components": [
             { "type": "Mesh", "meshName": "earth", "materialName": "earth", "cameraNames": ["camera0", "camera1"] }
+          ]
+        },
+        {
+          "name": "ground",
+          "parent": "root",
+          "position": [0.0, -2.0, 0.0],
+          "rotation": [0.0, 0.0, 0.0],
+          "scale": [10.0, 1.0, 10.0],
+          "components": [
+            { "type": "Mesh", "meshName": "plane", "materialName": "ground", "cameraNames": ["camera0", "camera1"] }
           ]
         },
         {
