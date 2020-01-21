@@ -3,8 +3,12 @@ package ilapin.renderingdemo.domain
 import ilapin.common.kotlin.plusAssign
 import ilapin.common.time.TimeRepository
 import ilapin.engine3d.*
+import ilapin.renderingdemo.domain.menu_controller.MenuEvent
 import ilapin.renderingdemo.domain.scene_loader.SceneLoader
+import ilapin.renderingdemo.domain.scroll_controller.ScrollController
+import ilapin.renderingdemo.getCameraComponent
 import ilapin.renderingengine.DisplayMetricsRepository
+import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
 import org.joml.Quaternionf
 import org.joml.Vector3f
@@ -17,6 +21,7 @@ class DemoScene(
     sceneLoader: SceneLoader,
     displayMetricsRepository: DisplayMetricsRepository,
     scrollController: ScrollController,
+    menuEvent: Observable<MenuEvent>,
     private val movementController: MovementController,
     private val timeRepository: TimeRepository
 ) : Scene {
@@ -32,9 +37,6 @@ class DemoScene(
 
     private val sceneData = sceneLoader.loadScene("shaders_scene.json")
 
-    private val perspectiveCamera: PerspectiveCameraComponent
-    private val perspectiveCameraTransform: TransformationComponent
-
     private val rootGameObject: GameObject
 
     private val lightTransform: TransformationComponent
@@ -44,13 +46,15 @@ class DemoScene(
 
     private var prevTimestamp: Long? = null
 
-    override val cameras: List<CameraComponent>
+    private var shouldUseAlternateCameraSet = false
+    private val camerasSet0: List<CameraComponent>
+    private val camerasSet1: List<CameraComponent>
+    override val cameras = ArrayList<CameraComponent>()
 
     init {
-        val perspectiveCameraGameObject = sceneData.gameObjectsMap["camera0"] ?: throw IllegalArgumentException("Camera game object not found")
-        perspectiveCamera = perspectiveCameraGameObject.getComponent(PerspectiveCameraComponent::class.java) ?: throw IllegalArgumentException("Camera component not found")
-        perspectiveCameraTransform = perspectiveCameraGameObject.getComponent(TransformationComponent::class.java) ?: throw IllegalArgumentException("Camera transformation component not found")
-        cameras = listOf(perspectiveCamera)
+        camerasSet0 = sceneData.initialCameras
+        camerasSet1 = listOf(sceneData.gameObjectsMap["camera1"]?.getCameraComponent() ?: throw IllegalArgumentException("camera1 not found"))
+        cameras += camerasSet0
 
         rootGameObject = sceneData.rootGameObject
 
@@ -64,6 +68,20 @@ class DemoScene(
             tmpQuaternion.rotateLocalX(xAngle.toFloat())
             lightTransform.rotation = tmpQuaternion
         }
+
+        subscriptions += menuEvent.subscribe { event ->
+            cameras.clear()
+            cameras += when (event) {
+                MenuEvent.SwitchCameraEvent -> {
+                    shouldUseAlternateCameraSet = !shouldUseAlternateCameraSet
+                    if (shouldUseAlternateCameraSet) {
+                        camerasSet1
+                    } else {
+                        camerasSet0
+                    }
+                }
+            }
+        }
     }
 
     override fun onCleared() {
@@ -71,13 +89,20 @@ class DemoScene(
     }
 
     override fun onScreenConfigUpdate(width: Int, height: Int) {
-        val partialConfig = sceneData.perspectiveCamerasConfigs["camera0"] ?: throw IllegalArgumentException("Camera's partial config not found")
-        perspectiveCamera.config = PerspectiveCameraComponent.Config(
-            partialConfig.fieldOfView,
-            width.toFloat() / height.toFloat(),
-            partialConfig.zNear,
-            partialConfig.zFar
-        )
+        (camerasSet0 + camerasSet1).forEach {
+            when (it) {
+                is PerspectiveCameraComponent -> {
+                    val partialConfig = sceneData.perspectiveCamerasConfigs[it.gameObject?.name] ?: throw IllegalArgumentException("Camera's partial config not found")
+                    it.config = PerspectiveCameraComponent.Config(
+                        partialConfig.fieldOfView,
+                        width.toFloat() / height.toFloat(),
+                        partialConfig.zNear,
+                        partialConfig.zFar
+                    )
+                }
+                else -> throw IllegalArgumentException("Unexpected component type ${it.javaClass.simpleName}")
+            }
+        }
     }
 
     override fun update() {
@@ -92,15 +117,21 @@ class DemoScene(
             tmpQuaternion.identity()
             tmpQuaternion.rotateY(movementController.horizontalSteeringFraction * CAMERA_STEERING_SPEED * dt)
             tmpQuaternion.rotateLocalX(movementController.verticalSteeringFraction * CAMERA_STEERING_SPEED * dt)
-            perspectiveCameraTransform.rotation.mul(tmpQuaternion, tmpQuaternion1)
-            perspectiveCameraTransform.rotation = tmpQuaternion1
+            val cameraGameObject = if (shouldUseAlternateCameraSet) {
+                camerasSet1.first().gameObject
+            } else {
+                camerasSet0.first().gameObject
+            } ?: throw IllegalArgumentException("Camera game object not found")
+            val cameraTransform = cameraGameObject.getComponent(TransformationComponent::class.java) ?: throw IllegalArgumentException("Camera transformation component not found")
+            cameraTransform.rotation.mul(tmpQuaternion, tmpQuaternion1)
+            cameraTransform.rotation = tmpQuaternion1
 
-            tmpVector.rotate(perspectiveCameraTransform.rotation)
-            tmpVector1.rotate(perspectiveCameraTransform.rotation)
+            tmpVector.rotate(cameraTransform.rotation)
+            tmpVector1.rotate(cameraTransform.rotation)
 
-            tmpVector.add(perspectiveCameraTransform.position)
+            tmpVector.add(cameraTransform.position)
             tmpVector.add(tmpVector1)
-            perspectiveCameraTransform.position = tmpVector
+            cameraTransform.position = tmpVector
         }
         prevTimestamp = currentTimestamp
     }

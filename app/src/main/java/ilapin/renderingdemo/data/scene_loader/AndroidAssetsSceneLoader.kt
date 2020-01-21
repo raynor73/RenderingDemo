@@ -8,6 +8,7 @@ import ilapin.meshloader.MeshLoadingRepository
 import ilapin.renderingdemo.domain.scene_loader.PerspectiveCameraPartialConfig
 import ilapin.renderingdemo.domain.scene_loader.SceneData
 import ilapin.renderingdemo.domain.scene_loader.SceneLoader
+import ilapin.renderingdemo.getCameraComponent
 import ilapin.renderingengine.LightsRenderingRepository
 import ilapin.renderingengine.MeshRenderingRepository
 import ilapin.renderingengine.RenderingSettingsRepository
@@ -96,28 +97,26 @@ class AndroidAssetsSceneLoader(
                                     Vector3f(colorComponents[0], colorComponents[1], colorComponents[2])
                                 )
                                 gameObject.addComponent(directionalLightComponent)
-                                val cameraName = it.cameraName ?: throw IllegalArgumentException("No camera name")
-                                val cameraGameObject = gameObjectsMap[cameraName] ?: throw IllegalArgumentException("Unknown camera $cameraName")
-                                lightsRenderingRepository.addDirectionalLight(
-                                    cameraGameObject.getComponent(PerspectiveCameraComponent::class.java) ?:
-                                    cameraGameObject.getComponent(OrthoCameraComponent::class.java) ?:
-                                    throw IllegalArgumentException("Camera component not found for $cameraName"),
-                                    directionalLightComponent
-                                )
+                                it.cameraNames?.forEach { cameraName ->
+                                    val cameraGameObject = gameObjectsMap[cameraName] ?: throw IllegalArgumentException("Unknown camera $cameraName")
+                                    lightsRenderingRepository.addDirectionalLight(
+                                        cameraGameObject.getCameraComponent() ?: throw IllegalArgumentException("Camera component not found for $cameraName"),
+                                        directionalLightComponent
+                                    )
+                                }
                             }
                         }
                         is ComponentDto.MeshDto -> {
                             val meshComponent = meshesMap[it.meshName] ?: throw IllegalArgumentException("Unknown mesh ${it.meshName}")
                             gameObject.addComponent(meshComponent)
                             gameObject.addComponent(materialsMap[it.materialName] ?: throw IllegalArgumentException("Unknown material ${it.materialName}"))
-                            val cameraName = it.cameraName ?: throw IllegalArgumentException("No camera name")
-                            val cameraGameObject = gameObjectsMap[cameraName] ?: throw IllegalArgumentException("Unknown camera $cameraName")
-                            meshRenderingRepository.addMeshToRenderList(
-                                cameraGameObject.getComponent(PerspectiveCameraComponent::class.java) ?:
-                                cameraGameObject.getComponent(OrthoCameraComponent::class.java) ?:
-                                throw IllegalArgumentException("Camera component not found for $cameraName"),
-                                meshComponent
-                            )
+                            it.cameraNames?.forEach { cameraName ->
+                                val cameraGameObject = gameObjectsMap[cameraName] ?: throw IllegalArgumentException("Unknown camera $cameraName")
+                                meshRenderingRepository.addMeshToRenderList(
+                                    cameraGameObject.getCameraComponent() ?: throw IllegalArgumentException("Camera component not found for $cameraName"),
+                                    meshComponent
+                                )
+                            }
                         }
                         is ComponentDto.PerspectiveCameraDto -> {
                             gameObject.addComponent(PerspectiveCameraComponent())
@@ -148,7 +147,11 @@ class AndroidAssetsSceneLoader(
         return SceneData(
             rootGameObject ?: throw IllegalArgumentException("No root game object"),
             gameObjectsMap,
-            perspectiveCamerasConfigs
+            perspectiveCamerasConfigs,
+            sceneDto.initialCameras?.mapNotNull {
+                val cameraGameObject = gameObjectsMap[it] ?: throw IllegalArgumentException("Unknown camera $it")
+                cameraGameObject.getCameraComponent()
+            }?.takeIf { it.isNotEmpty() } ?: throw IllegalArgumentException("Initial cameras not found")
         )
     }
 

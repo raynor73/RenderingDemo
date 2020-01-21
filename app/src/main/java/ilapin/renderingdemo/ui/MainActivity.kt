@@ -4,9 +4,7 @@ import android.annotation.SuppressLint
 import android.content.res.Configuration
 import android.opengl.GLSurfaceView
 import android.os.Bundle
-import android.view.GestureDetector
-import android.view.MotionEvent
-import android.view.View
+import android.view.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GestureDetectorCompat
 import com.google.gson.GsonBuilder
@@ -14,6 +12,7 @@ import ilapin.common.input.TouchEvent
 import ilapin.renderingdemo.R
 import ilapin.renderingdemo.data.scene_loader.ComponentDeserializer
 import ilapin.renderingdemo.data.scene_loader.ComponentDto
+import ilapin.renderingdemo.domain.menu_controller.MenuEvent
 import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -67,6 +66,21 @@ class MainActivity : AppCompatActivity() {
             glView.setRenderer(renderer)
             glView.renderMode = GLSurfaceView.RENDERMODE_CONTINUOUSLY
             containerLayout.addView(glView, 0)
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_main, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.cameraMenuItem -> {
+                renderer?.putMessage(MenuEvent.SwitchCameraEvent)
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
         }
     }
 

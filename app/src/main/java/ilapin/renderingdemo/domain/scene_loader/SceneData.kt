@@ -1,5 +1,6 @@
 package ilapin.renderingdemo.domain.scene_loader
 
+import ilapin.engine3d.CameraComponent
 import ilapin.engine3d.GameObject
 
 /**
@@ -8,5 +9,6 @@ import ilapin.engine3d.GameObject
 class SceneData(
     val rootGameObject: GameObject,
     val gameObjectsMap: Map<String, GameObject>,
-    val perspectiveCamerasConfigs: Map<String, PerspectiveCameraPartialConfig>
+    val perspectiveCamerasConfigs: Map<String, PerspectiveCameraPartialConfig>,
+    val initialCameras: List<CameraComponent>
 )

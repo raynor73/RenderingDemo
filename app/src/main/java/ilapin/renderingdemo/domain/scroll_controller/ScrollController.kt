@@ -1,4 +1,4 @@
-package ilapin.renderingdemo.domain
+package ilapin.renderingdemo.domain.scroll_controller
 
 import ilapin.common.input.TouchEvent
 import ilapin.common.rx.BaseObserver
@@ -32,7 +32,12 @@ class ScrollController : Disposable {
             }
 
             prevTouchEvent?.let {
-                scrollEventSubject.onNext(ScrollEvent(t.x - it.x, t.y - it.y))
+                scrollEventSubject.onNext(
+                    ScrollEvent(
+                        t.x - it.x,
+                        t.y - it.y
+                    )
+                )
             }
             prevTouchEvent = t
         }
