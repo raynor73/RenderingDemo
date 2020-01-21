@@ -47,7 +47,7 @@
           "rotation" : [0.0, 90.0, 0.0],
           "scale": [1.0, 1.0, 1.0],
           "components": [
-            { "type": "PerspectiveCamera", "fov": 45.0, "zNear": 0.1, "zFar": 5000.0 },
+            { "type": "PerspectiveCamera", "fov": 45.0, "zNear": 0.1, "zFar": 5000.0, "targetTextureNames": ["interactive"] },
             { "type": "Mesh", "meshName": "camera", "materialName": "camera", "cameraNames": ["camera0"] }
           ]
         },

@@ -6,5 +6,10 @@ package ilapin.renderingdemo.data.scene_loader
 sealed class ComponentDto {
     class DirectionalLightDto(val color: Array<Float>?, val cameraNames: Array<String>?) : ComponentDto()
     class MeshDto(val meshName: String?, val materialName: String?, val cameraNames: Array<String>?) : ComponentDto()
-    class PerspectiveCameraDto(val fov: Float?, val zNear: Float?, val zFar: Float?) : ComponentDto()
+    class PerspectiveCameraDto(
+        val fov: Float?,
+        val zNear: Float?,
+        val zFar: Float?,
+        val targetTextureNames: Array<String>?
+    ) : ComponentDto()
 }

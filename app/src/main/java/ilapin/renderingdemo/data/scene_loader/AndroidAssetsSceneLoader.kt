@@ -128,7 +128,7 @@ class AndroidAssetsSceneLoader(
                             }
                         }
                         is ComponentDto.PerspectiveCameraDto -> {
-                            gameObject.addComponent(PerspectiveCameraComponent())
+                            gameObject.addComponent(PerspectiveCameraComponent(it.targetTextureNames?.asList()))
                             perspectiveCamerasConfigs[gameObjectName] = PerspectiveCameraPartialConfig(
                                 it.fov ?: throw IllegalArgumentException("No Field of View parameter for camera $gameObjectName"),
                                 it.zNear ?: throw IllegalArgumentException("No Z Near parameter for camera $gameObjectName"),
