@@ -2,11 +2,13 @@
   "textures": [
     { "id": "earth", "path": "2k_earth_daymap.jpg" },
     { "id": "green", "color": [0, 1, 0, 1] },
-    { "id": "blue", "color": [0, 0, 0.5, 1] }
+    { "id": "blue", "color": [0, 0, 0.5, 1] },
+    { "id": "interactive", "width": 128, "height": 128 }
   ],
   "materials": [
     { "id": "earth", "textureName": "earth" },
     { "id": "camera", "textureName": "green", "isDoubleSided": true, "isWireframe": true, "isUnlit": true },
+    { "id": "screen", "textureName": "green", "isUnlit": true },
     { "id": "ground", "textureName": "blue" }
   ],
   "meshes": [
@@ -67,6 +69,16 @@
           "scale": [10.0, 1.0, 10.0],
           "components": [
             { "type": "Mesh", "meshName": "plane", "materialName": "ground", "cameraNames": ["camera0", "camera1"] }
+          ]
+        },
+        {
+          "name": "screen",
+          "parent": "root",
+          "position": [3.0, 0.0, 3.0],
+          "rotation": [0.0, 0.0, 90.0],
+          "scale": [1.0, 1.0, 1.0],
+          "components": [
+            { "type": "Mesh", "meshName": "plane", "materialName": "screen", "cameraNames": ["camera0", "camera1"] }
           ]
         },
         {

@@ -51,6 +51,9 @@ class AndroidAssetsSceneLoader(
                         (colorRGBA[2] * 255).toInt()
                 textureRepository.createTexture(id, 1, 1, colorARGB)
             }
+            safeLet(it.id, it.width, it.height) { id, width, height ->
+                textureRepository.createTextureForRendering(id, width, height)
+            }
         }
 
         sceneDto.materials?.forEach { materialDto ->
