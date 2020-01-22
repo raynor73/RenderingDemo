@@ -8,7 +8,7 @@
   "materials": [
     { "id": "earth", "textureName": "earth" },
     { "id": "camera", "textureName": "green", "isDoubleSided": true, "isWireframe": true, "isUnlit": true },
-    { "id": "screen", "textureName": "green", "isUnlit": true },
+    { "id": "screen", "textureName": "interactive", "isUnlit": true },
     { "id": "ground", "textureName": "blue" }
   ],
   "meshes": [
@@ -78,7 +78,7 @@
           "name": "screen",
           "parent": "root",
           "position": [3.0, 0.0, 3.0],
-          "rotation": [0.0, 0.0, 90.0],
+          "rotation": [90.0, 0.0, 0.0],
           "scale": [1.0, 1.0, 1.0],
           "components": [
             { "type": "Mesh", "meshName": "plane", "materialName": "screen", "cameraNames": ["camera0", "camera1"] }
