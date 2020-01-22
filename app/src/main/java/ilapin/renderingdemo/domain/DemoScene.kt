@@ -13,6 +13,8 @@ import io.reactivex.disposables.CompositeDisposable
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import org.joml.Vector3fc
+import kotlin.math.PI
+import kotlin.math.sin
 
 /**
  * @author Игорь on 14.01.2020.
@@ -45,6 +47,9 @@ class DemoScene(
     private val initialRightVector: Vector3fc = Vector3f(1f, 0f, 0f)
 
     private var prevTimestamp: Long? = null
+
+    private var elapsedTime = 0f
+    private var originalRotation: Quaternionf? = null
 
     private var shouldUseAlternateCameraSet = false
     private val camerasSet0: List<CameraComponent>
@@ -116,7 +121,7 @@ class DemoScene(
             tmpVector.set(initialForwardVector)
             tmpVector.mul(movementController.movingFraction * CAMERA_MOVEMENT_SPEED * dt)
             tmpVector1.set(initialRightVector)
-            tmpVector1.mul(movementController.strafingFraction* CAMERA_MOVEMENT_SPEED * dt)
+            tmpVector1.mul(movementController.strafingFraction * CAMERA_MOVEMENT_SPEED * dt)
 
             tmpQuaternion.identity()
             tmpQuaternion.rotateY(movementController.horizontalSteeringFraction * CAMERA_STEERING_SPEED * dt)
@@ -136,8 +141,33 @@ class DemoScene(
             tmpVector.add(cameraTransform.position)
             tmpVector.add(tmpVector1)
             cameraTransform.position = tmpVector
+
+            oscillate(dt)
         }
         prevTimestamp = currentTimestamp
+    }
+
+    private fun oscillate(dt: Float) {
+        if (!shouldUseAlternateCameraSet) {
+            val cameraTransform = camerasSet1.first().gameObject?.getComponent(TransformationComponent::class.java) ?: throw IllegalArgumentException("Camera transformation component not found")
+            val originalRotation = this.originalRotation
+            if (originalRotation == null) {
+                Quaternionf().apply {
+                    this@DemoScene.originalRotation = this
+                    set(cameraTransform.rotation)
+                }
+            } else {
+                elapsedTime += dt
+                cameraTransform.rotation = originalRotation
+                tmpQuaternion.identity()
+                tmpQuaternion.rotateY(sin(elapsedTime * OSCILLATION_SPEED).toFloat() * MAX_OSCILLATION_DECLINATION_ANGLE)
+                cameraTransform.rotation.mul(tmpQuaternion, tmpQuaternion1)
+                cameraTransform.rotation = tmpQuaternion1
+            }
+        } else {
+            elapsedTime = 0f
+            originalRotation = null
+        }
     }
 
     companion object {
@@ -145,5 +175,8 @@ class DemoScene(
         private const val CAMERA_MOVEMENT_SPEED = 1f
         private const val CAMERA_STEERING_SPEED = 1f
         private const val NANOS_IN_SECOND = 1e9f
+
+        private const val MAX_OSCILLATION_DECLINATION_ANGLE = 0.25f
+        private const val OSCILLATION_SPEED = PI / 2
     }
 }
