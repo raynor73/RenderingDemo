@@ -49,6 +49,7 @@ class DemoScene(
     private var shouldUseAlternateCameraSet = false
     private val camerasSet0: List<CameraComponent>
     private val camerasSet1: List<CameraComponent>
+
     override val cameras = ArrayList<CameraComponent>()
 
     init {
@@ -84,6 +85,10 @@ class DemoScene(
         }
     }
 
+    override fun getRenderingTargetCameras(textureName: String): List<CameraComponent> {
+        return sceneData.renderingTargetsCameras[textureName] ?: throw IllegalArgumentException("No cameras found for rendering target $textureName")
+    }
+
     override fun onCleared() {
         subscriptions.clear()
     }
@@ -95,7 +100,6 @@ class DemoScene(
                     val partialConfig = sceneData.perspectiveCamerasConfigs[it.gameObject?.name] ?: throw IllegalArgumentException("Camera's partial config not found")
                     it.config = PerspectiveCameraComponent.Config(
                         partialConfig.fieldOfView,
-                        width.toFloat() / height.toFloat(),
                         partialConfig.zNear,
                         partialConfig.zFar
                     )

@@ -3,4 +3,8 @@ package ilapin.renderingdemo.data.scene_loader
 /**
  * @author raynor on 21.01.20.
  */
-class LayerDto(val gameObjects: Array<GameObjectDto>?)
+class LayerDto(
+    val initialCameras: Array<String>?,
+    val renderingTargetCameras: Array<RenderingTargetDto>?,
+    val gameObjects: Array<GameObjectDto>?
+)

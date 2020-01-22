@@ -5,7 +5,6 @@ import com.google.gson.Gson
 import ilapin.common.kotlin.safeLet
 import ilapin.engine3d.*
 import ilapin.meshloader.MeshLoadingRepository
-import ilapin.renderingdemo.domain.scene_loader.PerspectiveCameraPartialConfig
 import ilapin.renderingdemo.domain.scene_loader.SceneData
 import ilapin.renderingdemo.domain.scene_loader.SceneLoader
 import ilapin.renderingdemo.getCameraComponent
@@ -31,7 +30,7 @@ class AndroidAssetsSceneLoader(
     override fun loadScene(path: String): SceneData {
         var rootGameObject: GameObject? = null
         val gameObjectsMap = HashMap<String, GameObject>()
-        val perspectiveCamerasConfigs = HashMap<String, PerspectiveCameraPartialConfig>()
+        val perspectiveCamerasConfigs = HashMap<String, PerspectiveCameraComponent.Config>()
 
         val materialsMap = HashMap<String, MaterialComponent>()
         val meshesMap = HashMap<String, MeshComponent>()
@@ -80,7 +79,7 @@ class AndroidAssetsSceneLoader(
             }
         }
 
-        sceneDto.layers?.takeIf { it.isNotEmpty() }?.get(0)?.let { layerDto ->
+        return sceneDto.layers?.takeIf { it.isNotEmpty() }?.get(0)?.let { layerDto ->
             layerDto.gameObjects?.forEach { gameObjectDto ->
                 val gameObjectName = gameObjectDto.name ?: throw IllegalArgumentException("No game object name")
                 val gameObject = GameObject(gameObjectName)
@@ -129,7 +128,7 @@ class AndroidAssetsSceneLoader(
                         }
                         is ComponentDto.PerspectiveCameraDto -> {
                             gameObject.addComponent(PerspectiveCameraComponent(it.targetTextureNames?.asList()))
-                            perspectiveCamerasConfigs[gameObjectName] = PerspectiveCameraPartialConfig(
+                            perspectiveCamerasConfigs[gameObjectName] = PerspectiveCameraComponent.Config(
                                 it.fov ?: throw IllegalArgumentException("No Field of View parameter for camera $gameObjectName"),
                                 it.zNear ?: throw IllegalArgumentException("No Z Near parameter for camera $gameObjectName"),
                                 it.zFar ?: throw IllegalArgumentException("No Z Far parameter for camera $gameObjectName")
@@ -151,17 +150,27 @@ class AndroidAssetsSceneLoader(
                 }
                 gameObjectsMap[gameObjectName] = gameObject
             }
-        }
 
-        return SceneData(
-            rootGameObject ?: throw IllegalArgumentException("No root game object"),
-            gameObjectsMap,
-            perspectiveCamerasConfigs,
-            sceneDto.initialCameras?.mapNotNull {
-                val cameraGameObject = gameObjectsMap[it] ?: throw IllegalArgumentException("Unknown camera $it")
-                cameraGameObject.getCameraComponent()
-            }?.takeIf { it.isNotEmpty() } ?: throw IllegalArgumentException("Initial cameras not found")
-        )
+            val renderingTargetsCameras = HashMap<String, List<CameraComponent>>()
+            layerDto.renderingTargetCameras?.forEach { renderingTargetDto ->
+                val textureName = renderingTargetDto.textureName ?: throw IllegalArgumentException("No texture name for rendering target")
+                renderingTargetsCameras[textureName] = renderingTargetDto.cameraNames?.mapNotNull {
+                    val cameraGameObject = gameObjectsMap[it] ?: throw IllegalArgumentException("Unknown camera $it")
+                    cameraGameObject.getCameraComponent()
+                }?.takeIf { it.isNotEmpty() } ?: throw IllegalArgumentException("Rendering target cameras not found")
+            }
+
+            SceneData(
+                rootGameObject ?: throw IllegalArgumentException("No root game object"),
+                gameObjectsMap,
+                perspectiveCamerasConfigs,
+                layerDto.initialCameras?.mapNotNull {
+                    val cameraGameObject = gameObjectsMap[it] ?: throw IllegalArgumentException("Unknown camera $it")
+                    cameraGameObject.getCameraComponent()
+                }?.takeIf { it.isNotEmpty() } ?: throw IllegalArgumentException("Initial cameras not found"),
+                renderingTargetsCameras
+            )
+        } ?: throw IllegalArgumentException("Layer not found")
     }
 
     companion object {
