@@ -80,6 +80,8 @@ class AndroidAssetsSceneLoader(
         }
 
         return sceneDto.layers?.takeIf { it.isNotEmpty() }?.get(0)?.let { layerDto ->
+            val renderingTargetsCameras = HashMap<String, List<CameraComponent>>()
+
             layerDto.gameObjects?.forEach { gameObjectDto ->
                 val gameObjectName = gameObjectDto.name ?: throw IllegalArgumentException("No game object name")
                 val gameObject = GameObject(gameObjectName)
@@ -112,6 +114,19 @@ class AndroidAssetsSceneLoader(
                                         directionalLightComponent
                                     )
                                 }
+
+                                val targetDepthTextureName = "${gameObject.name}_$DIRECTIONAL_LIGHT_SHADOW_MAP_POSTFIX"
+                                textureRepository.createTextureForRenderingDepth(
+                                    targetDepthTextureName,
+                                    DIRECTIONAL_LIGHT_SHADOW_MAP_SIZE,
+                                    DIRECTIONAL_LIGHT_SHADOW_MAP_SIZE
+                                )
+                                val orthoCameraComponent = OrthoCameraComponent(listOf(targetDepthTextureName))
+                                orthoCameraComponent.config = OrthoCameraComponent.Config(
+                                    -10.0f, 10.0f, -10.0f, 10.0f, -10.0f, 10.0f
+                                )
+                                gameObject.addComponent(orthoCameraComponent)
+                                renderingTargetsCameras[targetDepthTextureName] = listOf(orthoCameraComponent)
                             }
                         }
                         is ComponentDto.MeshDto -> {
@@ -151,7 +166,6 @@ class AndroidAssetsSceneLoader(
                 gameObjectsMap[gameObjectName] = gameObject
             }
 
-            val renderingTargetsCameras = HashMap<String, List<CameraComponent>>()
             layerDto.renderingTargetCameras?.forEach { renderingTargetDto ->
                 val textureName = renderingTargetDto.textureName ?: throw IllegalArgumentException("No texture name for rendering target")
                 renderingTargetsCameras[textureName] = renderingTargetDto.cameraNames?.mapNotNull {
@@ -176,5 +190,7 @@ class AndroidAssetsSceneLoader(
     companion object {
 
         private const val ROOT_GAME_OBJECT_NAME = "root"
+        private const val DIRECTIONAL_LIGHT_SHADOW_MAP_SIZE = 1024
+        private const val DIRECTIONAL_LIGHT_SHADOW_MAP_POSTFIX = "shadow_map"
     }
 }
